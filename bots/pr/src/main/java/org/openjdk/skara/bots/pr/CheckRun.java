@@ -965,31 +965,20 @@ class CheckRun {
         if (divergingCommits.size() > 0) {
             message.append("\n");
             message.append("At the time when this comment was updated there had been ");
+            message.append("[");
             if (divergingCommits.size() == 1) {
-                message.append("1 new commit ");
+                message.append("1 new commit");
             } else {
                 message.append(divergingCommits.size());
-                message.append(" new commits ");
+                message.append(" new commits");
             }
+            message.append("](");
+            message.append(pr.repository().webUrl(baseHash.hex(), pr.targetRef()));
+            message.append(") ");
             message.append("pushed to the `");
             message.append(pr.targetRef());
-            message.append("` branch:\n\n");
-            divergingCommits.stream()
-                            .limit(10)
-                            .forEach(c -> message.append(" * ").append(c.hash().hex()).append(": ").append(c.message().get(0)).append("\n"));
-            if (divergingCommits.size() > 10) {
-                message.append(" * ... and ").append(divergingCommits.size() - 10).append(" more: ")
-                       .append(pr.repository().webUrl(baseHash.hex(), pr.targetRef())).append("\n");
-            } else {
-                message.append("\n");
-                message.append("Please see [this link](");
-                message.append(pr.repository().webUrl(baseHash.hex(), pr.targetRef()));
-                message.append(") for an up-to-date comparison between the source branch of this pull request and the `");
-                message.append(pr.targetRef());
-                message.append("` branch.");
-            }
+            message.append("` branch.\n\n");
 
-            message.append("\n");
             message.append("As there are no conflicts, your changes will automatically be rebased on top of ");
             message.append("these commits when integrating. If you prefer to avoid this automatic rebasing");
         } else {

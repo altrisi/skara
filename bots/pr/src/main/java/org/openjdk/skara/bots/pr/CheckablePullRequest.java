@@ -245,28 +245,22 @@ public class CheckablePullRequest {
         if (divergingCommits.size() > 0) {
             reply.print("Since your change was applied there ");
             if (divergingCommits.size() == 1) {
-                reply.print("has been 1 commit ");
+                reply.print("has been [1 commit");
             } else {
-                reply.print("have been ");
+                reply.print("have been [");
                 reply.print(divergingCommits.size());
-                reply.print(" commits ");
+                reply.print(" commits");
             }
-            reply.print("pushed to the `");
+            reply.print("](");
+            try {
+                var baseHash = localRepo.mergeBase(targetHash(), pr.headHash());
+                reply.print(pr.repository().webUrl(baseHash.hex(), pr.targetRef()));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            reply.print(") pushed to the `");
             reply.print(pr.targetRef());
-            reply.print("` branch:\n\n");
-            divergingCommits.stream()
-                            .limit(10)
-                            .forEach(c -> reply.println(" * " + c.hash().hex() + ": " + c.message().get(0)));
-            if (divergingCommits.size() > 10) {
-                try {
-                    var baseHash = localRepo.mergeBase(targetHash(), pr.headHash());
-                    reply.println(" * ... and " + (divergingCommits.size() - 10) + " more: " +
-                                          pr.repository().webUrl(baseHash.hex(), pr.targetRef()));
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-            reply.println();
+            reply.print("` branch.\n\n");
 
             try {
                 localRepo.checkout(pr.headHash(), true);

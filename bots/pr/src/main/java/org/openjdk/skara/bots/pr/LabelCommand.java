@@ -46,13 +46,20 @@ public class LabelCommand implements CommandHandler {
     LabelCommand(String commandName) {
         this.commandName = commandName;
     }
+    
+    private static void printValidLabelsSection(LabelConfiguration labelConfiguration, PrintWriter reply) {
+        reply.println("<details>");
+        reply.println("<summary>Click to reveal a list of valid labels</summary>");
+        labelConfiguration.allowed().forEach(label -> reply.println(" * `" + label + "`"));
+        reply.println("</details>");
+    }
 
     private void showHelp(LabelConfiguration labelConfiguration, PrintWriter reply) {
         reply.println("Usage: `/" + commandName + " <add|remove> [label[, label, ...]]` " +
                       "or `/" + commandName + " [<+|->label[, <+|->label, ...]]` " +
                       "where `label` is an additional classification that should " +
-                      "be applied to this PR. These labels are valid:");
-        labelConfiguration.allowed().forEach(label -> reply.println(" * `" + label + "`"));
+                      "be applied to this PR.");
+        printValidLabelsSection(labelConfiguration, reply);
     }
 
     @Override
@@ -123,8 +130,7 @@ public class LabelCommand implements CommandHandler {
     private void printInvalidLabels(List<String> invalidLabels, PullRequestBot bot, PrintWriter reply) {
         reply.println(""); // Intentionally blank line.
         invalidLabels.forEach(label -> reply.println("The label `" + label + "` is not a valid label."));
-        reply.println("These labels are valid:");
-        bot.labelConfiguration().allowed().forEach(l -> reply.println(" * `" + l + "`"));
+        printValidLabelsSection(labelConfiguration, reply);
     }
 
     /**

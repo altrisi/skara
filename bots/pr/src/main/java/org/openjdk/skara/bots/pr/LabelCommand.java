@@ -130,7 +130,7 @@ public class LabelCommand implements CommandHandler {
     private void printInvalidLabels(List<String> invalidLabels, PullRequestBot bot, PrintWriter reply) {
         reply.println(""); // Intentionally blank line.
         invalidLabels.forEach(label -> reply.println("The label `" + label + "` is not a valid label."));
-        printValidLabelsSection(labelConfiguration, reply);
+        printValidLabelsSection(bot.labelConfiguration(), reply);
     }
 
     /**

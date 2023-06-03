@@ -396,8 +396,7 @@ class CheckTests {
 
             // The bot should reply with an ok message
             var updated = pr.comments().stream()
-                            .filter(comment -> comment.body().contains("there had been 1 new commit"))
-                            .filter(comment -> comment.body().contains(" * " + unrelatedHash.abbreviate()))
+                            .filter(comment -> comment.body().contains("there had been [1 new commit]"))
                             .filter(comment -> comment.body().contains("automatic rebasing"))
                             .count();
             assertEquals(1, updated);

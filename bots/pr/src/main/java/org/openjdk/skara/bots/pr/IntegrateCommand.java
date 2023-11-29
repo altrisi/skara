@@ -327,7 +327,9 @@ public class IntegrateCommand implements CommandHandler {
         pr.addComment(commentBody.toString());
     }
 
-    private static void processBackportLabel(PullRequest pr, List<Comment> allComments) {
+    // Returns set of labels to remove
+    private static Set<String> processBackportLabel(PullRequest pr, List<Comment> allComments) {
+        Set<String> labelsToRemove = new HashSet<>();
         var botUser = pr.repository().forge().currentUser();
         for (String label : pr.labelNames()) {
             var matcher = BACKPORT_LABEL_PATTERN.matcher(label);
@@ -342,25 +344,29 @@ public class IntegrateCommand implements CommandHandler {
                         .noneMatch(((c -> c.body().equals(text))))) {
                     pr.addComment(text);
                 }
-                pr.removeLabel(label);
+                labelsToRemove.add(label);
             }
         }
+        return labelsToRemove;
     }
 
     static void markIntegratedAndClosed(PullRequest pr, Hash hash, PrintWriter reply, List<Comment> allComments) {
-        processBackportLabel(pr, allComments);
+        Set<String> labelsToRemove = processBackportLabel(pr, allComments);
         // Note that the order of operations here is tested in IntegrateTests::retryAfterInterrupt
         // so any change here requires careful update of that test
-        pr.addLabel("integrated");
+        Set<String> labels = pr.labels().stream().map(l -> l.name()).collect(Collectors.toSet());
         pr.setState(PullRequest.State.CLOSED);
-        pr.removeLabel("ready");
-        pr.removeLabel("rfr");
-        if (pr.labelNames().contains("delegated")) {
-            pr.removeLabel("delegated");
+        labels.removeAll(labelsToRemove);
+        labels.add("integrated");
+        labels.remove("ready");
+        labels.remove("rfr");
+        if (labels.contains("delegated")) {
+            labels.remove("delegated");
         }
-        if (pr.labelNames().contains("sponsor")) {
-            pr.removeLabel("sponsor");
+        if (labels.contains("sponsor")) {
+            labels.remove("sponsor");
         }
+        pr.setLabels(new ArrayList<>(labels));
         reply.println(PullRequest.commitHashMessage(hash));
         reply.println();
         reply.println(":bulb: You may see a message that your pull request was closed with unmerged commits. This can be safely ignored.");
